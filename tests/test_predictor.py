@@ -11,13 +11,14 @@ from predictor import (
     STATE_CHRONIC,
     STATE_HEALTHY,
     STATE_MILD,
+    STATE_TERMINAL,
     PredictionInputError,
     predict_state,
 )
 
 
 class PruebasDelModelo(unittest.TestCase):
-    def test_debe_cubrir_los_cuatro_estados_con_los_casos_canonicos(self) -> None:
+    def test_debe_cubrir_los_cinco_estados_con_los_casos_canonicos(self) -> None:
         obtenidos = {
             predict_state(
                 caso.fever_celsius,
@@ -46,6 +47,11 @@ class PruebasDelModelo(unittest.TestCase):
     def test_debe_usar_el_dolor_para_cambiar_el_estado(self) -> None:
         self.assertEqual(predict_state(36.6, 8, 1, 0), STATE_ACUTE)
         self.assertEqual(predict_state(36.6, 3, 1, 0), STATE_MILD)
+
+    def test_debe_priorizar_terminal_cuando_el_cuadro_es_prolongado_e_intenso(self) -> None:
+        self.assertEqual(predict_state(39.0, 9, 240, 8), STATE_TERMINAL)
+        self.assertEqual(predict_state(37.0, 3, 240, 2), STATE_CHRONIC)
+        self.assertEqual(predict_state(39.0, 9, 10, 8), STATE_ACUTE)
 
     def test_debe_usar_los_dias_y_preferir_cronica_aunque_el_cuadro_sea_intenso(self) -> None:
         self.assertEqual(predict_state(36.6, 1, 120, 0), STATE_CHRONIC)
