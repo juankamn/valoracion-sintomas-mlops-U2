@@ -6,6 +6,7 @@ Servicio para que un médico consulte, a partir de cuatro datos del episodio, un
 - `ENFERMEDAD LEVE`
 - `ENFERMEDAD AGUDA`
 - `ENFERMEDAD CRÓNICA`
+- `ENFERMEDAD TERMINAL`
 
 El problema de fondo es estimar si un paciente puede tener una enfermedad a partir de sus síntomas, tanto cuando hay muchos casos (enfermedades comunes) como cuando hay muy pocos (enfermedades huérfanas). La respuesta apoya la decisión clínica. No diagnostica y no reemplaza el criterio del médico.
 
@@ -29,14 +30,15 @@ La función está en `predictor.py` y se llama `predict_state`. Acepta los cuatr
 
 Se aplican estas reglas, en este orden:
 
-1. Si los días con síntomas son **90 o más**, el estado es `ENFERMEDAD CRÓNICA`.
-2. Si la fiebre es **38.5 °C o más**, el dolor es **7 o más**, o el número de síntomas es **5 o más**, el estado es `ENFERMEDAD AGUDA`.
-3. Si la fiebre es **menor de 37.5 °C**, el dolor es **2 o menos**, los síntomas son **1 o menos** y los días son **3 o menos**, el estado es `NO ENFERMO`.
-4. En cualquier otro valor dentro del rango, el estado es `ENFERMEDAD LEVE`.
+1. Si los días con síntomas son **180 o más**, el dolor es **8 o más** y el número de síntomas es **6 o más**, el estado es `ENFERMEDAD TERMINAL`.
+2. Si los días con síntomas son **90 o más**, el estado es `ENFERMEDAD CRÓNICA`.
+3. Si la fiebre es **38.5 °C o más**, el dolor es **7 o más**, o el número de síntomas es **5 o más**, el estado es `ENFERMEDAD AGUDA`.
+4. Si la fiebre es **menor de 37.5 °C**, el dolor es **2 o menos**, los síntomas son **1 o menos** y los días son **3 o menos**, el estado es `NO ENFERMO`.
+5. En cualquier otro valor dentro del rango, el estado es `ENFERMEDAD LEVE`.
 
 Rangos aceptados: fiebre de 34 a 43 °C, dolor de 0 a 10, días de 0 a 3650 y síntomas de 0 a 30. Fuera de ese rango el servicio responde un error y no inventa un estado. En la fiebre se puede usar coma o punto (`37,6` o `37.6`).
 
-Estos cuatro casos cubren los cuatro estados:
+Estos cinco casos cubren los cinco estados:
 
 | Fiebre | Dolor | Días | Síntomas | Estado |
 | --- | --- | --- | --- | --- |
@@ -44,6 +46,7 @@ Estos cuatro casos cubren los cuatro estados:
 | 37.6 | 4 | 4 | 2 | ENFERMEDAD LEVE |
 | 39.2 | 8 | 2 | 6 | ENFERMEDAD AGUDA |
 | 37.0 | 3 | 120 | 2 | ENFERMEDAD CRÓNICA |
+| 39.0 | 9 | 240 | 8 | ENFERMEDAD TERMINAL |
 
 ## Requisitos
 
@@ -124,13 +127,19 @@ ENFERMEDAD CRÓNICA:
 curl.exe -s "http://localhost:8080/api/predecir?fiebre=37.0&intensidad_dolor=3&dias_sintomas=120&numero_sintomas=2"
 ```
 
+ENFERMEDAD TERMINAL:
+
+```powershell
+curl.exe -s "http://localhost:8080/api/predecir?fiebre=39.0&intensidad_dolor=9&dias_sintomas=240&numero_sintomas=8"
+```
+
 La respuesta trae `estado`, `regla`, `version` y `entrada`. Ejemplo:
 
 ```json
 {
   "estado": "NO ENFERMO",
   "regla": "Fiebre, dolor, duración y número de síntomas están por debajo del umbral de enfermedad.",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "entrada": {
     "fiebre": 36.6,
     "intensidad_dolor": 1,
@@ -162,7 +171,7 @@ Un dato fuera de rango responde con código 400 y un mensaje en `error`. Por eje
 
 ### Comprobar la función dentro de la imagen
 
-Sin abrir el navegador, la imagen puede imprimir los cuatro estados, en el orden de la tabla:
+Sin abrir el navegador, la imagen puede imprimir los cinco estados, en el orden de la tabla:
 
 ```powershell
 docker run --rm --entrypoint python valoracion-sintomas:0.1 predictor.py
@@ -175,6 +184,7 @@ NO ENFERMO
 ENFERMEDAD LEVE
 ENFERMEDAD AGUDA
 ENFERMEDAD CRÓNICA
+ENFERMEDAD TERMINAL
 ```
 
 ## Detener el servicio

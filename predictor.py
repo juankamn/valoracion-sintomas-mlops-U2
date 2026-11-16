@@ -1,12 +1,13 @@
 """Clasificador de síntomas que hace de modelo, para el servicio del médico.
 
 Todavía no hay un modelo entrenado. El módulo cumple el contrato del
-servicio: cuatro datos clínicos de entrada y uno de cuatro estados de salida.
+servicio: cuatro datos clínicos de entrada y uno de cinco estados de salida.
 Los umbrales son explícitos para que cada estado se pueda alcanzar y cada
 dato pueda cambiar el resultado.
 
-La evolución crónica se evalúa primero. Una evolución de 90 días o más
-define ENFERMEDAD CRÓNICA aunque el cuadro actual también sea intenso.
+El cuadro terminal se evalúa primero: muchos días, dolor alto y muchos
+síntomas a la vez. Después, una evolución de 90 días o más define
+ENFERMEDAD CRÓNICA aunque el cuadro actual también sea intenso.
 La enfermedad aguda es un cuadro intenso y más corto.
 """
 
@@ -20,10 +21,11 @@ STATE_HEALTHY = "NO ENFERMO"
 STATE_MILD = "ENFERMEDAD LEVE"
 STATE_ACUTE = "ENFERMEDAD AGUDA"
 STATE_CHRONIC = "ENFERMEDAD CRÓNICA"
+STATE_TERMINAL = "ENFERMEDAD TERMINAL"
 
-STATES = (STATE_HEALTHY, STATE_MILD, STATE_ACUTE, STATE_CHRONIC)
+STATES = (STATE_HEALTHY, STATE_MILD, STATE_ACUTE, STATE_CHRONIC, STATE_TERMINAL)
 
-MODEL_VERSION = "0.1.0"
+MODEL_VERSION = "0.2.0"
 
 FEVER_MIN = 34.0
 FEVER_MAX = 43.0
@@ -34,6 +36,9 @@ DAYS_MAX = 3650
 SYMPTOM_COUNT_MIN = 0
 SYMPTOM_COUNT_MAX = 30
 
+TERMINAL_MIN_DAYS = 180
+TERMINAL_MIN_PAIN = 8
+TERMINAL_MIN_SYMPTOMS = 6
 CHRONIC_MIN_DAYS = 90
 ACUTE_MIN_FEVER = 38.5
 ACUTE_MIN_PAIN = 7
@@ -73,6 +78,7 @@ class Prediction:
             STATE_MILD: "leve",
             STATE_ACUTE: "aguda",
             STATE_CHRONIC: "cronica",
+            STATE_TERMINAL: "terminal",
         }[self.state]
 
 
@@ -91,6 +97,7 @@ EXAMPLES: tuple[Example, ...] = (
     Example(37.6, 4, 4, 2, STATE_MILD),
     Example(39.2, 8, 2, 6, STATE_ACUTE),
     Example(37.0, 3, 120, 2, STATE_CHRONIC),
+    Example(39.0, 9, 240, 8, STATE_TERMINAL),
 )
 
 
@@ -98,8 +105,14 @@ def rule_lines() -> list[str]:
     """Reglas que ve el médico. Los números salen de las constantes."""
     return [
         (
-            f"{STATE_CHRONIC} si los días con síntomas son {CHRONIC_MIN_DAYS} o más. "
+            f"{STATE_TERMINAL} si los días con síntomas son {TERMINAL_MIN_DAYS} o más, "
+            f"el dolor es {TERMINAL_MIN_PAIN} o más "
+            f"y el número de síntomas es {TERMINAL_MIN_SYMPTOMS} o más. "
             "Esta condición se mira primero."
+        ),
+        (
+            f"{STATE_CHRONIC} si los días con síntomas son {CHRONIC_MIN_DAYS} o más. "
+            "Se mira después del cuadro terminal."
         ),
         (
             f"{STATE_ACUTE} si la fiebre es {ACUTE_MIN_FEVER:g} °C o más, "
@@ -131,6 +144,7 @@ def predict_state(
     predict_state(37.6, 4, 4, 2) -> ENFERMEDAD LEVE
     predict_state(39.2, 8, 2, 6) -> ENFERMEDAD AGUDA
     predict_state(37.0, 3, 120, 2) -> ENFERMEDAD CRÓNICA
+    predict_state(39.0, 9, 240, 8) -> ENFERMEDAD TERMINAL
     """
     return predict_details(
         fever_celsius,
@@ -243,6 +257,21 @@ def _as_int(value: object, field: str, label: str, low: int, high: int) -> int:
 
 
 def _classify(fever: float, pain: int, days: int, symptoms: int) -> tuple[str, str]:
+    if (
+        days >= TERMINAL_MIN_DAYS
+        and pain >= TERMINAL_MIN_PAIN
+        and symptoms >= TERMINAL_MIN_SYMPTOMS
+    ):
+        return (
+            STATE_TERMINAL,
+            (
+                f"Cuadro terminal: {days} días, dolor {pain}/10 "
+                f"y {symptoms} síntomas "
+                f"(umbrales: {TERMINAL_MIN_DAYS} días, dolor {TERMINAL_MIN_PAIN} "
+                f"y {TERMINAL_MIN_SYMPTOMS} síntomas, o más)."
+            ),
+        )
+
     if days >= CHRONIC_MIN_DAYS:
         return (
             STATE_CHRONIC,
