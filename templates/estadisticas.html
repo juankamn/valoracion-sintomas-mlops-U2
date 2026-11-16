@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Estadísticas de predicciones</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='estilos.css') }}">
+</head>
+<body>
+  <div class="pagina">
+    <header class="encabezado">
+      <p class="sobrelinea">Apoyo a la decisión clínica</p>
+      <h1>Estadísticas de predicciones</h1>
+      <p class="bajada">Conteo por estado, las últimas cinco consultas y la fecha de la más reciente.</p>
+      <p class="enlace-reporte"><a href="{{ url_for('index') }}">Volver al formulario</a></p>
+    </header>
+
+    <main class="tarjeta">
+      <section aria-labelledby="titulo-conteos">
+        <h2 id="titulo-conteos">Predicciones por estado</h2>
+        {% if fecha_ultima_prediccion %}
+        <p>Última predicción: <time datetime="{{ fecha_ultima_prediccion }}">{{ fecha_ultima_prediccion }}</time></p>
+        {% else %}
+        <p>Aún no hay predicciones.</p>
+        {% endif %}
+        <div class="contenedor-tabla">
+          <table class="tabla-reporte">
+            <caption class="pista">Total acumulado desde que el servicio guarda el registro.</caption>
+            <thead>
+              <tr>
+                <th scope="col">Estado</th>
+                <th scope="col">Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for estado, total in conteos.items() %}
+              <tr>
+                <th scope="row">{{ estado }}</th>
+                <td>{{ total }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="reglas" aria-labelledby="titulo-recientes">
+        <h2 id="titulo-recientes">Últimas predicciones</h2>
+        {% if ultimas_predicciones %}
+        <div class="contenedor-tabla">
+          <table class="tabla-reporte">
+            <thead>
+              <tr>
+                <th scope="col">Fecha</th>
+                <th scope="col">Estado</th>
+                <th scope="col">Fiebre</th>
+                <th scope="col">Dolor</th>
+                <th scope="col">Días</th>
+                <th scope="col">Síntomas</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for prediccion in ultimas_predicciones %}
+              <tr>
+                <td><time datetime="{{ prediccion.fecha }}">{{ prediccion.fecha }}</time></td>
+                <td>{{ prediccion.estado }}</td>
+                <td>{{ prediccion.entrada.fiebre }}</td>
+                <td>{{ prediccion.entrada.intensidad_dolor }}</td>
+                <td>{{ prediccion.entrada.dias_sintomas }}</td>
+                <td>{{ prediccion.entrada.numero_sintomas }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <p>Todavía no hay consultas registradas.</p>
+        {% endif %}
+      </section>
+    </main>
+  </div>
+</body>
+</html>

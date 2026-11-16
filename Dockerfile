@@ -12,11 +12,12 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 COPY requirements.txt .
 RUN pip install --no-cache-dir --disable-pip-version-check -r requirements.txt
 
-COPY predictor.py app.py ./
+COPY predictor.py app.py stats_store.py ./
 COPY templates ./templates
 COPY static ./static
 
 RUN useradd --create-home --uid 10001 appuser \
+    && mkdir -p /app/data \
     && chown -R appuser:appuser /app
 USER appuser
 

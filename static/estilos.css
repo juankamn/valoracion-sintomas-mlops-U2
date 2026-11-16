@@ -44,6 +44,10 @@ h1 {
   color: var(--secundario);
 }
 
+.enlace-reporte {
+  margin: 12px 0 0;
+}
+
 .tarjeta {
   margin-top: 20px;
   padding: 20px;
@@ -201,6 +205,23 @@ input.invalido {
 
 a {
   color: var(--foco);
+}
+
+.tabla-reporte {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.tabla-reporte th,
+.tabla-reporte td {
+  padding: 8px 10px;
+  text-align: left;
+  border-bottom: 1px solid var(--linea);
+  vertical-align: top;
+}
+
+.contenedor-tabla {
+  overflow-x: auto;
 }
 
 input:focus,

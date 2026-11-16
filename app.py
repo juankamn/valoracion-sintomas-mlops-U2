@@ -16,13 +16,15 @@ from predictor import (
     read_features,
     rule_lines,
 )
+from stats_store import record, report, resolve_path
 
 FORM_KEYS = ("fiebre", "intensidad_dolor", "dias_sintomas", "numero_sintomas")
 
 
-def create_app() -> Flask:
+def create_app(stats_file_path: str | None = None) -> Flask:
     app = Flask(__name__)
     app.json.ensure_ascii = False
+    app.config["STATS_FILE_PATH"] = resolve_path(stats_file_path)
 
     @app.get("/")
     def index():
@@ -35,6 +37,7 @@ def create_app() -> Flask:
         except PredictionInputError as exc:
             body = _view(error=str(exc), error_field=exc.field, form_values=_sticky(request.form))
             return render_template("index.html", **body), 400
+        record(result, app.config["STATS_FILE_PATH"])
         body = _view(result=result, form_values=_sticky(request.form))
         return render_template("index.html", **body)
 
@@ -44,7 +47,16 @@ def create_app() -> Flask:
             result = _from_mapping(_request_mapping())
         except PredictionInputError as exc:
             return jsonify({"error": str(exc)}), 400
+        record(result, app.config["STATS_FILE_PATH"])
         return jsonify(_payload(result))
+
+    @app.get("/api/estadisticas")
+    def stats_api():
+        return jsonify(report(app.config["STATS_FILE_PATH"]))
+
+    @app.get("/estadisticas")
+    def stats_page():
+        return render_template("estadisticas.html", **report(app.config["STATS_FILE_PATH"]))
 
     @app.get("/salud")
     def health():
