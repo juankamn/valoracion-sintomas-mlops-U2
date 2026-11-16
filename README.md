@@ -25,7 +25,8 @@ La función está en `predictor.py` y se llama `predict_state`. Acepta los cuatr
 | `static/estilos.css` y `static/formulario.js` | Presentación y casos de prueba |
 | `requirements.txt` | Dependencia (Flask) |
 | `Dockerfile` | Construcción de la imagen |
-| `tests/` | Pruebas de la función y del servicio |
+| `tests/` | Pruebas de la función, del servicio y del reporte |
+| `.github/workflows/ci-cd.yml` | Pruebas en cada cambio y publicación de la imagen |
 
 ## Cómo decide la función
 
@@ -218,6 +219,15 @@ Si lo inició en segundo plano:
 docker stop valoracion-sintomas
 docker rm valoracion-sintomas
 ```
+
+## Integración continua
+
+Cada pull request hacia `main` publica el comentario `CI/CD en acción. Ejecutando tareas …`, ejecuta `pytest -v` y, si las pruebas pasan, publica `CI/CD terminado con éxito.`
+
+Cada cambio que llega a `main` vuelve a ejecutar las pruebas y publica la imagen en GitHub Packages:
+
+- `ghcr.io/juankamn/valoracion-sintomas-mlops-u2:latest`
+- `ghcr.io/juankamn/valoracion-sintomas-mlops-u2:<sha>`
 
 ## Problemas frecuentes
 

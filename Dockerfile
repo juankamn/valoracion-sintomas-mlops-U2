@@ -1,6 +1,8 @@
 # Servicio de valoración de síntomas. La clasificación la hace una función hasta el modelo entrenado.
 FROM python:3.12-slim
 
+LABEL org.opencontainers.image.source="https://github.com/juankamn/valoracion-sintomas-mlops-U2"
+
 WORKDIR /app
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
