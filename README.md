@@ -20,6 +20,7 @@ La función está en `predictor.py` y se llama `predict_state`. Acepta los cuatr
 | --- | --- |
 | `predictor.py` | Función que simula el modelo |
 | `app.py` | Página web y API |
+| `stats_store.py` | Registro de predicciones y reporte |
 | `templates/index.html` | Formulario del médico |
 | `static/estilos.css` y `static/formulario.js` | Presentación y casos de prueba |
 | `requirements.txt` | Dependencia (Flask) |
@@ -186,6 +187,26 @@ ENFERMEDAD AGUDA
 ENFERMEDAD CRÓNICA
 ENFERMEDAD TERMINAL
 ```
+
+## Estadísticas
+
+Cada predicción válida se agrega a un archivo de texto, una línea JSON por consulta. La ruta por defecto es `data/predictions_log.jsonl`. Puede cambiarla con la variable de entorno `STATS_FILE_PATH`.
+
+El reporte tiene tres datos:
+
+- cuántas predicciones hay de cada uno de los cinco estados (0 si todavía no hay ninguna);
+- las últimas cinco predicciones, con los datos de entrada, el estado y la fecha;
+- la fecha de la última predicción, o ningún valor si el registro está vacío.
+
+En el navegador, abra `http://localhost:8080/estadisticas` o el enlace **Ver estadísticas de predicciones** del formulario.
+
+Por API:
+
+```powershell
+curl.exe -s "http://localhost:8080/api/estadisticas"
+```
+
+La imagen crea `/app/data` con permiso de escritura para el usuario del proceso. Ese directorio no se incluye en el repositorio ni en el contexto de construcción.
 
 ## Detener el servicio
 
