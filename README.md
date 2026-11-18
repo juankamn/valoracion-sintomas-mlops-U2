@@ -108,31 +108,31 @@ Estos ejemplos usan `curl` en macOS o Linux. En Windows PowerShell use `curl.exe
 NO ENFERMO:
 
 ```powershell
-curl.exe -s "http://localhost:8080/api/predecir?fiebre=36.6&intensidad_dolor=1&dias_sintomas=1&numero_sintomas=0"
+curl -s "http://localhost:8080/api/predecir?fiebre=36.6&intensidad_dolor=1&dias_sintomas=1&numero_sintomas=0"
 ```
 
 ENFERMEDAD LEVE:
 
 ```powershell
-curl.exe -s "http://localhost:8080/api/predecir?fiebre=37.6&intensidad_dolor=4&dias_sintomas=4&numero_sintomas=2"
+curl -s "http://localhost:8080/api/predecir?fiebre=37.6&intensidad_dolor=4&dias_sintomas=4&numero_sintomas=2"
 ```
 
 ENFERMEDAD AGUDA:
 
 ```powershell
-curl.exe -s "http://localhost:8080/api/predecir?fiebre=39.2&intensidad_dolor=8&dias_sintomas=2&numero_sintomas=6"
+curl -s "http://localhost:8080/api/predecir?fiebre=39.2&intensidad_dolor=8&dias_sintomas=2&numero_sintomas=6"
 ```
 
 ENFERMEDAD CRÓNICA:
 
 ```powershell
-curl.exe -s "http://localhost:8080/api/predecir?fiebre=37.0&intensidad_dolor=3&dias_sintomas=120&numero_sintomas=2"
+curl -s "http://localhost:8080/api/predecir?fiebre=37.0&intensidad_dolor=3&dias_sintomas=120&numero_sintomas=2"
 ```
 
 ENFERMEDAD TERMINAL:
 
 ```powershell
-curl.exe -s "http://localhost:8080/api/predecir?fiebre=39.0&intensidad_dolor=9&dias_sintomas=240&numero_sintomas=8"
+curl -s "http://localhost:8080/api/predecir?fiebre=39.0&intensidad_dolor=9&dias_sintomas=240&numero_sintomas=8"
 ```
 
 La respuesta trae `estado`, `regla`, `version` y `entrada`. Ejemplo:
@@ -201,13 +201,19 @@ El reporte tiene tres datos:
 
 En el navegador, abra `http://localhost:8080/estadisticas` o el enlace **Ver estadísticas de predicciones** del formulario.
 
-Por API:
+Por API (en Windows PowerShell use `curl.exe`):
 
 ```powershell
-curl.exe -s "http://localhost:8080/api/estadisticas"
+curl -s "http://localhost:8080/api/estadisticas"
 ```
 
 La imagen crea `/app/data` con permiso de escritura para el usuario del proceso. Ese directorio no se incluye en el repositorio ni en el contexto de construcción.
+
+Con el comando de ejecución anterior, el registro se pierde al eliminar el contenedor. Para conservarlo entre ejecuciones, use un volumen de Docker:
+
+```sh
+docker run --rm -p 8080:5000 -v valoracion-datos:/app/data valoracion-sintomas:0.1
+```
 
 ## Detener el servicio
 
